@@ -5,11 +5,35 @@ services:
     image: postgres:15
     container_name: postgres_db
     env_file:
-      - .env
+      - ./backend/.env
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - project_elearningtn_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: elearning_backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - project_elearningtn_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: elearning_frontend
+    ports:
+      - "3000:80"
     networks:
       - project_elearningtn_network
 
