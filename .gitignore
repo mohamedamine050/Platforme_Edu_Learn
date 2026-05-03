@@ -1,0 +1,17 @@
+# Root monorepo ignores
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Backend build output
+backend/target/
+
+# Environment files
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

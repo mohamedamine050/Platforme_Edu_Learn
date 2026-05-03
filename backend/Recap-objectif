@@ -1,0 +1,223 @@
+RÉCAPITULATIF DU PROJET
+Objectif
+Créer une plateforme web d'enregistrements vidéo éducatifs pour étudiants du secondaire et universitaires.
+
+🏗️ FONCTIONNALITÉS PRINCIPALES
+1. Authentification & Gestion Utilisateurs
+
+Sign Up (inscription étudiants)
+Vérification par email
+Login/Sign In
+Panel Admin séparé avec authentification
+Gestion des rôles (Étudiant / Admin)
+
+2. Structure du Contenu
+Niveaux (Secondaire, Universitaire)
+    └── Cours (Mathématiques, Physique, etc.)
+        └── Chapitres (Chapitre 1, 2, 3...)
+            └── Vidéos éducatives
+3. Espace Étudiant
+
+Navigation par niveau → cours → chapitres
+Lecture de vidéos
+Suivi de progression (chapitres complétés)
+
+4. Panel Admin
+
+Gestion des niveaux
+Ajout/modification/suppression de cours
+Ajout/modification/suppression de chapitres
+Upload de vidéos
+Gestion des utilisateurs
+
+
+💻 STACK TECHNOLOGIQUE CHOISI
+Frontend
+React + TypeScript + Vite
+
+Pourquoi ?
+
+Vous êtes avancé → TypeScript = meilleure maintenabilité
+Vite = développement rapide, build ultra-performant
+React = grande flexibilité, excellent écosystème
+Séparation claire avec le backend
+
+
+Librairies complémentaires :
+
+UI : Material-UI ou Tailwind CSS + shadcn/ui
+Routing : React Router v6
+State & API : React Query (cache, synchronisation)
+Forms : React Hook Form + Zod (validation)
+Video Player : react-player ou video.js
+
+
+
+Backend
+Spring Boot 3.x + Java 17/21
+
+Pourquoi ?
+
+Architecture robuste et professionnelle
+Spring Security = sécurité enterprise-grade
+Excellent pour APIs REST
+Scalable facilement
+Bonne maintenance sur le long terme
+
+
+Modules Spring utilisés :
+
+Spring Web (REST API)
+Spring Security + JWT (authentification)
+Spring Data JPA (ORM pour PostgreSQL)
+Spring Mail (vérification email)
+Spring Validation
+
+
+
+Base de Données
+PostgreSQL
+
+Pourquoi ?
+
+Base relationnelle robuste
+Parfait pour structure hiérarchique (niveaux → cours → chapitres)
+Excellente avec Spring Data JPA
+Gratuit et open-source
+Support des relations complexes
+
+
+Tables principales :
+
+users (étudiants + admins)
+niveaux (secondaire, universitaire)
+cours (par niveau)
+chapitres (par cours, avec vidéos)
+progression (suivi utilisateur)
+
+
+
+Stockage Vidéos
+Option recommandée : Cloudflare R2
+
+Pourquoi ?
+
+10GB gratuit/mois
+Compatible S3 (facile à intégrer)
+Pas de frais de bande passante
+CDN intégré = streaming rapide
+SDK Java disponible
+
+
+
+Alternatives :
+
+Bunny.net CDN (~$1/TB, excellent streaming)
+YouTube (unlisted) en attendant (gratuit mais moins professionnel)
+
+
+🚀 HÉBERGEMENT (Coûts Réduits)
+Phase de Développement/Lancement (Gratuit)
+
+Frontend : Vercel ou Netlify (100% gratuit, illimité)
+Backend : Railway (500h gratuit/mois) ou Render (tier gratuit)
+Database : Neon PostgreSQL (0.5GB gratuit) ou Supabase PostgreSQL
+Vidéos : Cloudflare R2 (10GB gratuit)
+
+Coût total démarrage : 0€/mois (jusqu'à des centaines d'utilisateurs)
+Évolution future (si croissance)
+
+Backend : VPS (Hetzner ~5€/mois) ou AWS/GCP
+Database : Managed PostgreSQL (~10-20€/mois)
+Vidéos : Cloudflare R2 ou Bunny.net (~1-5€/mois selon usage)
+
+
+🔐 ARCHITECTURE SÉCURITÉ
+Authentification JWT
+
+User se connecte → Backend vérifie credentials
+Backend génère JWT token (valide 24h)
+Frontend stocke token (localStorage/cookie httpOnly)
+Toutes les requêtes incluent token dans header
+Backend valide token à chaque requête
+
+Rôles & Permissions
+
+STUDENT : Accès lecture cours/chapitres, progression personnelle
+ADMIN : Accès complet (CRUD cours, chapitres, gestion users)
+
+Protection des vidéos
+
+URLs signées (expiration temporelle)
+Vérification du token utilisateur avant streaming
+Pas de liens directs accessibles sans authentification
+
+
+📊 FLUX DE DONNÉES
+Étudiant regarde une vidéo :
+Frontend (React)
+    ↓ GET /api/cours/5/chapitres
+Backend (Spring Boot)
+    ↓ Vérifie JWT + permissions
+    ↓ Query Database (PostgreSQL)
+    ↓ Retourne chapitres + signed video URLs
+Frontend
+    ↓ Affiche liste chapitres
+    ↓ User clique sur chapitre
+    ↓ Video player charge depuis R2 CDN
+    ↓ POST /api/progression (marquer comme vu)
+Backend
+    ↓ Update progression table
+Admin ajoute un cours :
+Frontend Admin Panel
+    ↓ POST /api/admin/cours (+ données)
+Backend
+    ↓ Vérifie JWT + role ADMIN
+    ↓ Valide données
+    ↓ INSERT INTO cours table
+    ↓ Retourne cours créé
+Frontend
+    ↓ Affiche confirmation
+
+⚡ AVANTAGES DE CE STACK
+Pour vos priorités :
+✅ Coûts réduits : Hébergement gratuit possible jusqu'à 100k+ requêtes/mois
+✅ Facilité maintenance : TypeScript + Spring Boot = code structuré et typé
+✅ Performance : Vite (front) + Spring Boot optimisé + PostgreSQL indexé
+✅ Scalabilité : Architecture peut grandir facilement
+Bonus :
+✅ Sécurité robuste (Spring Security)
+✅ Écosystème mature (React + Spring)
+✅ Grande communauté (support facile)
+✅ CV/Portfolio valorisant (stack professionnel)
+
+🎯 PROCHAINES ÉTAPES SUGGÉRÉES
+Phase 1 : Setup & Base
+
+Initialiser projet Spring Boot (Spring Initializr)
+Initialiser projet React (Vite)
+Setup PostgreSQL local (Docker recommandé)
+Créer schema de base de données
+Configurer Spring Security + JWT
+
+Phase 2 : Backend API
+6. Développer endpoints authentification
+7. Développer endpoints CRUD cours/chapitres
+8. Implémenter gestion progression
+9. Tests API (Postman/Insomnia)
+Phase 3 : Frontend
+10. Setup routing + layout
+11. Pages authentification
+12. Interface étudiant (navigation cours)
+13. Video player + tracking progression
+14. Panel admin
+Phase 4 : Intégration Vidéos
+15. Setup Cloudflare R2
+16. Upload vidéos depuis admin panel
+17. Génération URLs signées
+18. Streaming optimisé
+Phase 5 : Déploiement
+19. Dockeriser backend
+20. Déployer sur Railway/Render
+21. Déployer frontend sur Vercel
+22. Tests production

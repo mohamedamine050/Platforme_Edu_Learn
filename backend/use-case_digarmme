@@ -1,0 +1,69 @@
+Digramme use case :
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+title "Diagramme des cas d'utilisation - Plateforme E-Learning"
+
+' --- Acteurs ---
+actor "Apprenant" as Student
+actor "Administrateur" as Admin
+
+' --- Système au centre ---
+rectangle "Plateforme Web E-Learning" {
+  
+  ' --- Use cases Authentification ---
+  usecase "S'inscrire" as UC1
+  usecase "Se connecter" as UC2
+  usecase "Vérifier email" as UC3
+  usecase "Réinitialiser mot de passe" as UC4
+  
+  ' --- Use cases Apprenant ---
+  usecase "Consulter catalogue cours" as UC5
+  usecase "Consulter détails cours" as UC6
+  usecase "Suivre un cours" as UC7
+  usecase "Suivre progression" as UC8
+  usecase "Rechercher cours" as UC9
+  usecase "Faire quiz" as UC16
+  
+  ' --- Use cases Administrateur ---
+  usecase "Gérer niveaux" as UC10
+  usecase "Gérer cours" as UC11
+  usecase "Gérer utilisateurs" as UC14
+  usecase "Consulter statistiques" as UC15
+}
+
+' --- Relations Apprenant (à gauche) ---
+Student --> UC1
+Student --> UC5
+Student --> UC6
+Student --> UC7
+Student --> UC8
+Student --> UC9
+
+' --- Relations Administrateur (à droite) ---
+UC2 <-- Admin
+UC10 <-- Admin
+UC11 <-- Admin
+UC14 <-- Admin
+UC15 <-- Admin
+
+' --- Relations include (dépendances obligatoires) ---
+' Authentification
+UC1 ..> UC3 : <<include>>
+UC5 ..> UC2 : <<include>>
+UC6 ..> UC2 : <<include>>
+UC7 ..> UC2 : <<include>>
+UC8 ..> UC2 : <<include>>
+UC9 ..> UC2 : <<include>>
+
+UC10 ..> UC2 : <<include>>
+UC11 ..> UC2 : <<include>>
+UC14 ..> UC2 : <<include>>
+UC15 ..> UC2 : <<include>>
+
+' --- Relations extend (extensions optionnelles) ---
+UC4 ..> UC2 : <<extend>>
+UC6 ..> UC5 : <<extend>>
+UC16 ..> UC7 : <<extend>>
+
+@enduml
