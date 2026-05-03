@@ -6,12 +6,14 @@ const PrivateRoute = () => {
   const [status, setStatus] = useState("loading");
 
   useEffect(() => {
+    let cancelled = false;
     me()
-      .then(() => setStatus("authenticated"))
-      .catch(() => setStatus("unauthenticated"));
+      .then(() => { if (!cancelled) setStatus("authenticated"); })
+      .catch(() => { if (!cancelled) setStatus("unauthenticated"); });
+    return () => { cancelled = true; };
   }, []);
 
-  if (status === "loading") return null;
+  if (status === "loading") return <span aria-live="polite">Chargement...</span>;
   if (status === "unauthenticated") return <Navigate to="/signin" replace />;
   return <Outlet />;
 };
