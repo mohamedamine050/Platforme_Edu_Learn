@@ -4,6 +4,8 @@ import com.e_learning.project.dto.CourseRequest;
 import com.e_learning.project.dto.CourseResponse;
 import com.e_learning.project.service.CourseService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,9 @@ public class CourseController {
 
     // CREATE
     @PostMapping("/classes/{classId}/courses")
-    public CourseResponse create(@PathVariable Long classId,
-                                 @Valid @RequestBody CourseRequest request) {
-        return courseService.create(classId, request);
+    public ResponseEntity<CourseResponse> create(@PathVariable Long classId,
+                                                 @Valid @RequestBody CourseRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseService.create(classId, request));
     }
 
     // LIST by class
@@ -41,7 +43,7 @@ public class CourseController {
     // UPDATE
     @PutMapping("/courses/{id}")
     public CourseResponse update(@PathVariable UUID id,
-                                 @RequestBody CourseRequest request) {
+                                 @Valid @RequestBody CourseRequest request) {
         return courseService.update(id, request);
     }
 

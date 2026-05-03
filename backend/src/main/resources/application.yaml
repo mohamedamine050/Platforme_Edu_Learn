@@ -10,8 +10,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update       # pour dev, en prod mettre validate ou none
-    show-sql: true           # logs SQL
+      ddl-auto: update       # dev uniquement : utiliser validate ou none en production
+    show-sql: false          # mettre false en production pour ne pas exposer les requêtes SQL
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -26,6 +26,7 @@ app:
     allowed-origins: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"
 
 jwt:
+  # ⚠️ Obligatoire : définir JWT_SECRET dans les variables d'environnement (min. 32 caractères)
   secret: ${JWT_SECRET:change-me-please-change-me-please-change-me}
   expiration: 3600000
   cookie:

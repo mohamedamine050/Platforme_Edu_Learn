@@ -8,11 +8,13 @@ import com.e_learning.project.exception.ResourceNotFoundException;
 import com.e_learning.project.repository.ChapterRepository;
 import com.e_learning.project.repository.CourseRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class ChapterService {
 
     private final ChapterRepository chapterRepository;
@@ -41,6 +43,7 @@ public class ChapterService {
     }
 
     // LIST
+    @Transactional(readOnly = true)
     public List<ChapterResponse> getByCourse(UUID courseId) {
         return chapterRepository.findByCourseId(courseId)
                 .stream()
@@ -49,6 +52,7 @@ public class ChapterService {
     }
 
     // GET
+    @Transactional(readOnly = true)
     public ChapterResponse getById(UUID id) {
         return chapterRepository.findById(id)
                 .map(ChapterResponse::new)
@@ -71,6 +75,9 @@ public class ChapterService {
 
     // DELETE
     public void delete(UUID id) {
+        if (!chapterRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Chapter introuvable : " + id);
+        }
         chapterRepository.deleteById(id);
     }
 }

@@ -18,7 +18,7 @@ import java.util.List;
 public class ChapterEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)

@@ -3,6 +3,9 @@ package com.e_learning.project.controller;
 import com.e_learning.project.dto.UserRequest;
 import com.e_learning.project.dto.UserResponse;
 import com.e_learning.project.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,8 +23,8 @@ public class UserController {
 
     // CREATE
     @PostMapping("/users")
-    public UserResponse create(@RequestBody UserRequest request) {
-        return userService.create(request);
+    public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
     }
 
     // LIST
@@ -39,7 +42,7 @@ public class UserController {
     // UPDATE
     @PutMapping("/users/{id}")
     public UserResponse update(@PathVariable UUID id,
-                               @RequestBody UserRequest request) {
+                               @Valid @RequestBody UserRequest request) {
         return userService.update(id, request);
     }
 

@@ -12,7 +12,7 @@ const SignUp = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(preset.email || "");
-  const [password, setPassword] = useState(preset.password || "");
+  const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [level, setLevel] = useState("");
   const [gender, setGender] = useState("");

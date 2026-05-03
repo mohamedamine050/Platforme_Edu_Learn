@@ -3,6 +3,9 @@ package com.e_learning.project.controller;
 import com.e_learning.project.dto.ChapterRequest;
 import com.e_learning.project.dto.ChapterResponse;
 import com.e_learning.project.service.ChapterService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,9 +22,9 @@ public class ChapterController {
     }
 
     @PostMapping("/courses/{courseId}/chapters")
-    public ChapterResponse create(@PathVariable UUID courseId,
-                                  @RequestBody ChapterRequest request) {
-        return chapterService.create(courseId, request);
+    public ResponseEntity<ChapterResponse> create(@PathVariable UUID courseId,
+                                                  @Valid @RequestBody ChapterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(chapterService.create(courseId, request));
     }
 
     @GetMapping("/courses/{courseId}/chapters")
@@ -36,7 +39,7 @@ public class ChapterController {
 
     @PutMapping("/chapters/{id}")
     public ChapterResponse update(@PathVariable UUID id,
-                                  @RequestBody ChapterRequest request) {
+                                  @Valid @RequestBody ChapterRequest request) {
         return chapterService.update(id, request);
     }
 

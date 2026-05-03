@@ -73,6 +73,9 @@ public class CourseService {
 
     // DELETE
     public void delete(UUID id) {
+        if (!courseRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Course introuvable : " + id);
+        }
         courseRepository.deleteById(id);
     }
 }

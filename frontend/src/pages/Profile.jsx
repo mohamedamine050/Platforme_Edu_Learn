@@ -90,7 +90,7 @@ const Profile = () => {
           <div className="profileHighlights">
             <div className="profileHighlightCard">
               <span>Statut</span>
-              <strong>Actif</strong>
+              <strong>{user.isActive ? "Actif" : "Inactif"}</strong>
             </div>
             <div className="profileHighlightCard">
               <span>Niveau</span>

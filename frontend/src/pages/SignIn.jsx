@@ -30,7 +30,7 @@ const SignIn = () => {
       navigate("/profile");
     } catch (err) {
       if (err.status === 404) {
-        navigate("/signup", { state: { email: normalizedEmail, password: trimmedPassword } });
+        navigate("/signup", { state: { email: normalizedEmail } });
         return;
       }
       setError(err.message || "Login failed.");

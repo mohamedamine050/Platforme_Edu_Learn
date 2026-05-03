@@ -10,6 +10,7 @@ import Video from "./pages/Video";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
+import PrivateRoute from "./component/PrivateRoute";
 
 const App = () => {
   return (
@@ -18,13 +19,17 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/offers" element={<Offers />} />
-        <Route path="/matiere" element={<Matiere />} />
         <Route path="/assistance" element={<Assistance />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/chapitres/:courseId" element={<Chapitres />} />
-        <Route path="/video/:chapterId" element={<Video />} />
-        <Route path="/profile" element={<Profile />} />
+
+        {/* Protected routes — require authentication */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/matiere" element={<Matiere />} />
+          <Route path="/chapitres/:courseId" element={<Chapitres />} />
+          <Route path="/video/:chapterId" element={<Video />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
       </Routes>
     </Router>
   );

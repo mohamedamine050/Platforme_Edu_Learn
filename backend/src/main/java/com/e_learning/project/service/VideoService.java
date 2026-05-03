@@ -8,11 +8,13 @@ import com.e_learning.project.exception.ResourceNotFoundException;
 import com.e_learning.project.repository.ChapterRepository;
 import com.e_learning.project.repository.VideoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class VideoService {
 
     private final VideoRepository videoRepository;
@@ -42,6 +44,7 @@ public class VideoService {
     }
 
     // LIST
+    @Transactional(readOnly = true)
     public List<VideoResponse> getByChapter(UUID chapterId) {
         return videoRepository.findByChapterId(chapterId)
                 .stream()
@@ -50,6 +53,7 @@ public class VideoService {
     }
 
     // GET
+    @Transactional(readOnly = true)
     public VideoResponse getById(UUID id) {
         return videoRepository.findById(id)
                 .map(VideoResponse::new)
@@ -73,6 +77,9 @@ public class VideoService {
 
     // DELETE
     public void delete(UUID id) {
+        if (!videoRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Video introuvable : " + id);
+        }
         videoRepository.deleteById(id);
     }
 }

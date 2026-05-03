@@ -5,6 +5,7 @@ import com.e_learning.project.dto.RegisterRequest;
 import com.e_learning.project.dto.UserResponse;
 import com.e_learning.project.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         UserResponse response = authService.register(request);
         ResponseCookie cookie = authService.buildAuthCookie(response.getEmail(), response.getRole());
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .header("Set-Cookie", cookie.toString())
                 .body(response);
     }

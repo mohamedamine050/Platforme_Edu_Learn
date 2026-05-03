@@ -64,6 +64,10 @@ public class JwtService {
         if (secret == null || secret.isBlank()) {
             throw new IllegalArgumentException("JWT secret is required");
         }
+        // HS256 requires at least 256 bits (32 bytes)
+        if (secret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret must be at least 32 characters long");
+        }
         boolean looksBase64 = secret.matches("[A-Za-z0-9+/=]+") && secret.length() % 4 == 0;
         return looksBase64 ? secret : java.util.Base64.getEncoder().encodeToString(secret.getBytes());
     }
