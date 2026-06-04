@@ -1,4 +1,5 @@
 import MainLayout from "../component/MainLayout";
+import { MissionIcon, TeamIcon, GlobeIcon } from "../component/Icons";
 
 const About = () => {
   return (
@@ -12,7 +13,7 @@ const About = () => {
 
           <div className="aboutContent">
             <div className="aboutSection">
-              <div className="sectionIcon">🎯</div>
+              <div className="sectionIcon"><MissionIcon /></div>
               <h2>Notre Mission</h2>
               <p>
                 Rendre l'éducation de qualité accessible à tous. Nous croyons que chacun 
@@ -21,7 +22,7 @@ const About = () => {
             </div>
 
             <div className="aboutSection">
-              <div className="sectionIcon">👥</div>
+              <div className="sectionIcon"><TeamIcon /></div>
               <h2>Notre Équipe</h2>
               <p>
                 Composée d'experts en éducation et de professionnels passionnés, 
@@ -30,7 +31,7 @@ const About = () => {
             </div>
 
             <div className="aboutSection">
-              <div className="sectionIcon">🌍</div>
+              <div className="sectionIcon"><GlobeIcon /></div>
               <h2>Notre Vision</h2>
               <p>
                 Créer une communauté mondiale d'apprenants où chacun peut développer 

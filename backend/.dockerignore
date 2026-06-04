@@ -1,0 +1,25 @@
+# Sortie de build (recompilée dans l'image)
+target
+
+# Fichiers d'environnement et secrets (injectés via docker compose env_file)
+.env
+.env.*
+
+# Git / éditeurs / OS
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+.settings
+.project
+.classpath
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+
+# Documentation locale non nécessaire au build
+HELP.md
+Recap-objectif
+use-case_digarmme

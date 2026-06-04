@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class CourseRequest {
@@ -12,4 +14,7 @@ public class CourseRequest {
     private String title;
 
     private String description;
+
+    // Sections ciblées (noms). Vide/absent = matière commune à toutes les sections.
+    private List<String> sections;
 }

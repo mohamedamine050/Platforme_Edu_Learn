@@ -1,50 +1,56 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import SecondLayout from "../component/SecondLayout";
-import { getCourseById, getChaptersByCourse } from "../service/classService";
+import Pagination from "../component/Pagination";
+import { getCourseById, getChaptersByCourse } from "../service/api";
+import { useListQuery } from "../hooks/useListQuery";
+import { ArrowLeftIcon, ChevronRightIcon } from "../component/Icons";
+
+const PAGE_SIZE = 10;
 
 const Chapitres = () => {
   const navigate = useNavigate();
-  const { courseId } = useParams();
+  const { classId, courseId } = useParams();
+  const { page, setParams } = useListQuery();
+
   const [course, setCourse] = useState(null);
   const [chapters, setChapters] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadChapters = async () => {
+    if (!courseId) return;
+    let active = true;
+    (async () => {
       try {
-        setLoading(true);
-
-        if (!courseId) {
-          throw new Error("Cours introuvable.");
-        }
-
-        const [courseData, chaptersData] = await Promise.all([
+        const [courseData, chaptersRes] = await Promise.all([
           getCourseById(courseId),
-          getChaptersByCourse(courseId),
+          getChaptersByCourse(courseId, { page: page - 1, size: PAGE_SIZE }),
         ]);
-
-        setCourse(courseData);
-        setChapters(chaptersData || []);
+        if (active) {
+          setCourse(courseData);
+          setChapters(chaptersRes.content ?? []);
+          setTotal(chaptersRes.totalElements);
+          setTotalPages(chaptersRes.totalPages);
+          setError("");
+        }
       } catch (err) {
-        setError(err.message || "Impossible de charger les chapitres.");
-        if (err.status === 401) {
-          navigate("/signin");
+        if (active) {
+          setError(err.message || "Impossible de charger les chapitres.");
+          if (err.status === 401) navigate("/signin");
         }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    };
-
-    loadChapters();
-  }, [courseId, navigate]);
+    })();
+    return () => { active = false; };
+  }, [courseId, page, navigate]);
 
   const openVideo = (chapterId) => {
-    navigate(`/video/${chapterId}`);
+    navigate(`/classes/${classId}/courses/${courseId}/chapters/${chapterId}`);
   };
-
-  const totalVideos = chapters.length;
 
   if (loading) {
     return (
@@ -65,7 +71,7 @@ const Chapitres = () => {
           <div className="matiereDetailGrid">
             <div className="matiereInfoCard">
               <p className="profileError">{error}</p>
-              <button className="backButton" onClick={() => navigate("/matiere")}>← Retour aux matières</button>
+              <button className="backButton" onClick={() => navigate(`/classes/${classId}/courses`)}><ArrowLeftIcon className="backIcon" /> Retour aux matières</button>
             </div>
           </div>
         </div>
@@ -78,18 +84,20 @@ const Chapitres = () => {
       <div className="matiereDetailContainer">
         <div className="matiereDetailGrid">
           <div className="matiereInfoCard">
-            <button className="backButton" onClick={() => navigate("/matiere")}>← Retour aux matières</button>
+            <nav className="breadcrumb">
+              <Link className="breadcrumbLink" to={`/classes/${classId}/courses`}>Matières</Link>
+              {course?.classTitle && <><span className="breadcrumbSep">›</span><span>{course.classTitle}</span></>}
+              <span className="breadcrumbSep">›</span>
+              <span className="breadcrumbCurrent">{course?.title || "Cours"}</span>
+            </nav>
+            <button className="backButton" onClick={() => navigate(`/classes/${classId}/courses`)}><ArrowLeftIcon className="backIcon" /> Retour aux matières</button>
             <h1 className="matiereTitle">{course?.title || "Cours"}</h1>
             <p className="matiereDescription">{course?.description || "Liste des chapitres associés à ce cours."}</p>
 
             <div className="matiereStats">
               <div className="statItem">
                 <span className="statLabel">Nombre de chapitres:</span>
-                <span className="statValue">{chapters.length} chapitres</span>
-              </div>
-              <div className="statItem">
-                <span className="statLabel">Nombre de vidéos:</span>
-                <span className="statValue">{totalVideos} vidéos</span>
+                <span className="statValue">{total} chapitres</span>
               </div>
             </div>
           </div>
@@ -104,20 +112,20 @@ const Chapitres = () => {
                   </div>
                 </div>
               ) : (
-                chapters
-                  .slice()
-                  .sort((left, right) => (left.chapterOrder || 0) - (right.chapterOrder || 0))
-                  .map((chapitre, index) => (
-                    <div key={chapitre.id} className="chapitreListItem" role="button" tabIndex={0} onClick={() => openVideo(chapitre.id)} onKeyDown={(event) => event.key === "Enter" && openVideo(chapitre.id)}>
-                      <div className="chapitreNumber">{String(chapitre.chapterOrder || index + 1).padStart(2, "0")}</div>
-                      <div className="chapitreListContent">
-                        <h3 className="chapitreListName">{chapitre.title}</h3>
-                        <span className="videosCount">Voir les vidéos</span>
-                      </div>
+                chapters.map((chapitre, index) => (
+                  <div key={chapitre.id} className="chapitreListItem" role="button" tabIndex={0} onClick={() => openVideo(chapitre.id)} onKeyDown={(event) => event.key === "Enter" && openVideo(chapitre.id)}>
+                    <div className="chapitreNumber">{String(chapitre.chapterOrder || index + 1).padStart(2, "0")}</div>
+                    <div className="chapitreListContent">
+                      <h3 className="chapitreListName">{chapitre.title}</h3>
+                      <span className="videosCount">Voir les vidéos</span>
                     </div>
-                  ))
+                    <ChevronRightIcon className="chapitreChevron" />
+                  </div>
+                ))
               )}
             </div>
+
+            <Pagination page={page - 1} totalPages={totalPages} onChange={(p) => setParams({ page: p + 1 })} />
           </div>
         </div>
       </div>

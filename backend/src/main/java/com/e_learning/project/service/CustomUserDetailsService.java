@@ -1,9 +1,9 @@
 package com.e_learning.project.service;
 
+import com.e_learning.project.config.AppUserDetails;
 import com.e_learning.project.model.UserEntity;
 import com.e_learning.project.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,6 +29,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 new SimpleGrantedAuthority("ROLE_" + entity.getRole().name())
         );
 
-        return new User(entity.getEmail(), entity.getPassword(), entity.isActive(), true, true, true, authorities);
+        return new AppUserDetails(entity, authorities);
     }
 }

@@ -1,4 +1,5 @@
 import SecondLayout from "../component/SecondLayout";
+import { MailIcon, ChatIcon, PhoneIcon } from "../component/Icons";
 
 const Assistance = () => {
   const supportChannels = [
@@ -6,21 +7,21 @@ const Assistance = () => {
       id: 1,
       title: "Email",
       description: "support@edulearn.com",
-      icon: "📧",
+      Icon: MailIcon,
       color: "#dbeafe",
     },
     {
       id: 2,
       title: "Chat",
       description: "Chat en Direct",
-      icon: "💬",
+      Icon: ChatIcon,
       color: "#dcfce7",
     },
     {
       id: 3,
       title: "Téléphone",
       description: "+216 1234 5678",
-      icon: "📞",
+      Icon: PhoneIcon,
       color: "#fef3c7",
     },
   ];
@@ -37,7 +38,7 @@ const Assistance = () => {
           {supportChannels.map((channel) => (
             <div key={channel.id} className="assistanceCard">
               <div className="assistanceIconBox" style={{ backgroundColor: channel.color }}>
-                <span className="assistanceIcon">{channel.icon}</span>
+                <span className="assistanceIcon"><channel.Icon /></span>
               </div>
               <div className="assistanceContent">
                 <h3>{channel.title}</h3>

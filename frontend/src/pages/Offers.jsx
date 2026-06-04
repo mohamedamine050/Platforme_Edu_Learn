@@ -1,61 +1,92 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import MainLayout from "../component/MainLayout";
+import { getOffers } from "../service/api";
+import { BookIcon } from "../component/Icons";
+
+const formatPrice = (price) =>
+  price == null || Number(price) === 0 ? "Gratuit" : `${Number(price).toFixed(2)} DT`;
 
 const Offers = () => {
-  const levelSections = [
-    {
-      level: "7ème",
-      sections: [
-        { name: "Collège", icon: "📚", description: "Tous les cours de 7ème", courses: 120, price: "7.99DT" },
-      ]
-    },
-    {
-      level: "8ème",
-      sections: [
-        { name: "Collège", icon: "📚", description: "Tous les cours de 8ème", courses: 125, price: "7.99DT" },
-      ]
-    },
-    {
-      level: "9ème",
-      sections: [
-        { name: "Collège", icon: "📚", description: "Tous les cours de 9ème", courses: 130, price: "9.99DT" },
-      ]
-    },
-    {
-      level: "1ère",
-      sections: [
-        { name: "Technique", icon: "🔧", description: "Mécanique, électronique et informatique appliquée", courses: 45, price: "12.99DT" },
-        { name: "Science", icon: "🔬", description: "Sciences naturelles, physique et chimie", courses: 50, price: "12.99DT" },
-        { name: "Général", icon: "📚", description: "Littérature, histoire et géographie", courses: 42, price: "12.99DT" },
-      ]
-    },
-    {
-      level: "2ème",
-      sections: [
-        { name: "Technique", icon: "🔧", description: "Approfondissement technique et technologie", courses: 48, price: "12.99DT" },
-        { name: "Science", icon: "🔬", description: "Biologie, chimie avancée et physique", courses: 52, price: "12.99DT" },
-        { name: "Français", icon: "📖", description: "Maîtrisez la grammaire et la littérature", courses: 45, price: "12.99DT" },
-        { name: "Math", icon: "🧮", description: "Algèbre, géométrie et calcul avancé", courses: 55, price: "12.99DT" },
-      ]
-    },
-    {
-      level: "3ème",
-      sections: [
-        { name: "Technique", icon: "🔧", description: "Préparation technique pour le BAC", courses: 50, price: "14.99DT" },
-        { name: "Science", icon: "🔬", description: "Biologie, chimie et physique intensifs", courses: 58, price: "14.99DT" },
-        { name: "Géographie", icon: "🌍", description: "Géographie, environnement et société", courses: 40, price: "14.99DT" },
-        { name: "Philosophie", icon: "🤔", description: "Éthique, logique et métaphysique", courses: 38, price: "14.99DT" },
-      ]
-    },
-    {
-      level: "BAC",
-      sections: [
-        { name: "Sciences", icon: "🔬", description: "Biologie, chimie et physique pour l'examen final", courses: 68, price: "17.99DT" },
-        { name: "Mathématiques", icon: "📊", description: "Analyse, algèbre linéaire et probabilités intensives", courses: 65, price: "17.99DT" },
-        { name: "Technique", icon: "🔧", description: "Spécialités techniques du BAC", courses: 52, price: "17.99DT" },
-        { name: "Littéraire", icon: "✒️", description: "Littérature, philosophie et histoire", courses: 48, price: "17.99DT" },
-      ]
-    }
-  ];
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    getOffers()
+      .then((res) => { if (!cancelled) setClasses(res ?? []); })
+      .catch((err) => { if (!cancelled) setError(err.message || "Impossible de charger les offres."); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const collegeClasses = useMemo(() => classes.filter((c) => c.level === "COLLEGE"), [classes]);
+  const lyceeClasses = useMemo(() => classes.filter((c) => c.level === "LYCEE"), [classes]);
+  const univClasses = useMemo(() => classes.filter((c) => c.level === "UNIV"), [classes]);
+
+  // Carte compacte d'une classe, réutilisée par les classes sans section (Collège, Lycée, Université).
+  const renderClassCard = (cls) => (
+    <div key={cls.id} className="collegeLevelCard">
+      <div className="collegeLevelIcon"><BookIcon /></div>
+      <h3>{cls.title}</h3>
+      <div>
+        {cls.sections?.length > 0 && (
+          <p className="collegeDescription">{cls.sections.map((s) => s.name).join(" · ")}</p>
+        )}
+        <div className="collegeLevelStats">
+          <span className="sectionPrice">{formatPrice(cls.price)}</span>
+        </div>
+        <Link className="viewCoursesBtn" to="/signin">Voir les cours</Link>
+      </div>
+    </div>
+  );
+
+  // Une classe AVEC sections -> une sous-section avec une carte par section.
+  const renderGrade = (cls) => {
+    const sections = cls.sections?.length ? cls.sections : [null];
+    return (
+      <div key={cls.id} className="levelSection">
+        <div className="classSubHeader">
+          <h3 className="classTitle">{cls.title}</h3>
+        </div>
+        <div className="sectionsGrid">
+          {sections.map((section, index) => (
+            <div key={section ? section.name : index} className="sectionCard">
+              <div className="sectionLevel">{section ? `${cls.title} - ${section.name}` : cls.title}</div>
+              <div className="sectionIcon"><BookIcon /></div>
+              <h3>{section ? section.name : cls.title}</h3>
+              <div className="sectionStats">
+                <span className="sectionPrice">{formatPrice(section ? section.price : cls.price)}</span>
+              </div>
+              <Link className="viewCoursesBtn" to="/signin">Voir les cours</Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Rendu d'un niveau : classes sans section en grille compacte, classes avec sections
+  // en sous-sections (comme le Bac). Utilisé pour Collège, Lycée et Université.
+  const renderLevel = (title, list) => {
+    if (!list.length) return null;
+    const withSections = list.filter((c) => c.sections?.length > 0);
+    const withoutSections = list.filter((c) => !c.sections?.length);
+    return (
+      <div className="collegeSection">
+        <div className="levelSectionHeader">
+          <h2 className="levelTitle">{title}</h2>
+        </div>
+        {withoutSections.length > 0 && (
+          <div className="collegeLevelsGrid">
+            {withoutSections.map(renderClassCard)}
+          </div>
+        )}
+        {withSections.map(renderGrade)}
+      </div>
+    );
+  };
 
   return (
     <MainLayout>
@@ -65,86 +96,26 @@ const Offers = () => {
           <p>Explorez nos cours par niveau et section</p>
         </div>
 
-        {/* Collège Section - Displayed in Parallel */}
-        <div className="collegeSection">
-          <div className="levelSectionHeader">
-            <h2 className="levelTitle">Collège</h2>
-          </div>
-          <div className="collegeLevelsGrid">
-            {levelSections.slice(0, 3).map((levelGroup, levelIdx) => (
-              <div key={levelIdx} className="collegeLevelCard">
-                <div className="collegeLevelIcon">📚</div>
-                <h3>{levelGroup.level}</h3>
-                {levelGroup.sections.map((section, sectionIdx) => (
-                  <div key={sectionIdx}>
-                    <p className="collegeDescription">{section.description}</p>
-                    <div className="collegeLevelStats">
-                      <span>{section.courses} cours</span>
-                      <span className="sectionPrice">{section.price}</span>
-                    </div>
-                    <button className="viewCoursesBtn">Voir les cours</button>
-                  </div>
-                ))}
+        {loading && (
+          <div className="sectionsGrid" aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="sectionCard offerSkeleton">
+                <div className="skel skelBadge" />
+                <div className="skel skelIcon" />
+                <div className="skel skelTitle" />
+                <div className="skel skelPrice" />
+                <div className="skel skelBtn" />
               </div>
             ))}
           </div>
-        </div>
+        )}
+        {error && <p className="adminError">{error}</p>}
+        {!loading && !error && classes.length === 0 && <p>Aucune classe disponible pour le moment.</p>}
 
-        {/* Lycée Section - Displayed Vertically */}
-        <div className="lyceeSection">
-          <div className="levelSectionHeader">
-            <h2 className="levelTitle">Lycée</h2>
-          </div>
-          {levelSections.slice(3).map((levelGroup, levelIdx) => (
-            <div key={levelIdx + 3} className="levelSection">
-              <div className="levelSectionHeader">
-                <h2 className="levelTitle">{levelGroup.level}</h2>
-              </div>
-
-              <div className="sectionsGrid">
-                {levelGroup.sections.map((section, sectionIdx) => (
-                  <div key={sectionIdx} className="sectionCard">
-                    <div className="sectionLevel">{levelGroup.level} - {section.name}</div>
-                    <div className="sectionIcon">{section.icon}</div>
-                    <h3>{section.name}</h3>
-                    <p>{section.description}</p>
-                    <div className="sectionStats">
-                      <span>{section.courses} cours</span>
-                      <span className="sectionPrice">{section.price}</span>
-                    </div>
-                    <button className="viewCoursesBtn">Voir les cours</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="offersInfo">
-          <h2>Pourquoi choisir EduLearn?</h2>
-          <div className="infoGrid">
-            <div className="infoCard">
-              <div className="infoIcon">🎓</div>
-              <h3>Cours de Qualité</h3>
-              <p>Créés par des professeurs experts et expérimentés</p>
-            </div>
-            <div className="infoCard">
-              <div className="infoIcon">📱</div>
-              <h3>Accès Illimité</h3>
-              <p>Regardez les cours autant de fois que vous le souhaitez</p>
-            </div>
-            <div className="infoCard">
-              <div className="infoIcon">🏆</div>
-              <h3>Certificats</h3>
-              <p>Obtenez des certificats reconnaissance après chaque cours</p>
-            </div>
-            <div className="infoCard">
-              <div className="infoIcon">💬</div>
-              <h3>Support Réactif</h3>
-              <p>Posez vos questions et recevez des réponses rapidement</p>
-            </div>
-          </div>
-        </div>
+        {/* Un bloc par niveau : Collège, Lycée, Université */}
+        {renderLevel("Collège", collegeClasses)}
+        {renderLevel("Lycée", lyceeClasses)}
+        {renderLevel("Université", univClasses)}
       </section>
     </MainLayout>
   );

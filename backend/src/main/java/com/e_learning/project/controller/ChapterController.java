@@ -2,13 +2,15 @@ package com.e_learning.project.controller;
 
 import com.e_learning.project.dto.ChapterRequest;
 import com.e_learning.project.dto.ChapterResponse;
+import com.e_learning.project.dto.PageResponse;
 import com.e_learning.project.service.ChapterService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,9 +29,12 @@ public class ChapterController {
         return ResponseEntity.status(HttpStatus.CREATED).body(chapterService.create(courseId, request));
     }
 
+    // LIST paginée par cours (query params : ?search=&page=&size=&sort=chapterOrder,asc)
     @GetMapping("/courses/{courseId}/chapters")
-    public List<ChapterResponse> getByCourse(@PathVariable UUID courseId) {
-        return chapterService.getByCourse(courseId);
+    public PageResponse<ChapterResponse> getByCourse(@PathVariable UUID courseId,
+                                                     @RequestParam(required = false) String search,
+                                                     @PageableDefault(size = 10, sort = "chapterOrder") Pageable pageable) {
+        return chapterService.getByCourse(courseId, search, pageable);
     }
 
     @GetMapping("/chapters/{id}")
@@ -44,7 +49,8 @@ public class ChapterController {
     }
 
     @DeleteMapping("/chapters/{id}")
-    public void delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         chapterService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

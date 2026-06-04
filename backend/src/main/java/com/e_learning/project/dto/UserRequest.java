@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +28,7 @@ public class UserRequest {
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String password;
 
-    private Long phoneNumber;
+    private String phoneNumber;
 
     @NotNull(message = "Le statut actif est obligatoire")
     private Boolean isActive;
@@ -35,15 +36,19 @@ public class UserRequest {
     @NotNull(message = "Le role est obligatoire")
     private Role role;
 
-    @NotNull(message = "Le niveau est obligatoire")
+    // Champs spécifiques aux étudiants : obligatoires uniquement si role == STUDENT
+    // (validés dans UserService selon le rôle).
     private String level;
 
-    @NotNull(message = "Le genre est obligatoire")
+    private String section;
+
+    private String establishment;
+
+    private String region;
+
     private Gender gender;
 
-    @NotNull(message = "La date de naissance est obligatoire")
     private java.time.LocalDate dateOfBirth;
 
-    @NotNull(message = "La classe est obligatoire")
-    private Long classId;
+    private UUID classId;
 }

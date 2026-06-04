@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { LogoMark } from "./Icons";
 
 const Footer = () => {
   return (
@@ -6,7 +7,7 @@ const Footer = () => {
       <div className="footerContent">
         <div className="footerSection">
           <div className="footerLogo">
-            <div className="logoIcon">📖</div>
+            <div className="logoIcon"><LogoMark /></div>
             <span className="logoText">EduLearn</span>
           </div>
           <p className="footerDesc">
@@ -20,17 +21,16 @@ const Footer = () => {
             <li><Link to="/">Accueil</Link></li>
             <li><Link to="/offers">Offres</Link></li>
             <li><Link to="/matiere">Matières</Link></li>
-            <li><Link to="/contact">Contact</Link></li>
+            <li><Link to="/assistance">Assistance</Link></li>
           </ul>
         </div>
 
         <div className="footerSection">
           <h3 className="footerTitle">Ressources</h3>
           <ul className="footerLinks">
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">FAQ</a></li>
-            <li><a href="#">Support</a></li>
-            <li><a href="#">Conditions</a></li>
+            <li><Link to="/about">À propos</Link></li>
+            <li><Link to="/assistance">Support</Link></li>
+            <li><Link to="/offers">Tarifs</Link></li>
           </ul>
         </div>
 
@@ -46,7 +46,7 @@ const Footer = () => {
       </div>
 
       <div className="footerBottom">
-        <p>&copy; 2024 EduLearn. Tous les droits réservés.</p>
+        <p>&copy; {new Date().getFullYear()} EduLearn. Tous les droits réservés.</p>
       </div>
     </footer>
   );

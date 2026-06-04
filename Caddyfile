@@ -1,0 +1,25 @@
+# =============================================================================
+# Reverse proxy HTTPS (Caddy) — production
+# =============================================================================
+# Caddy est le routeur unique :
+#   - termine le TLS (certificat Let's Encrypt auto-obtenu/renouvelé)
+#   - route /api/* vers le backend Spring Boot (même origine → pas de CORS)
+#   - sert tout le reste depuis le frontend nginx (fichiers statiques React)
+#
+# APP_DOMAIN peut contenir un ou plusieurs hôtes séparés par un espace, ex. :
+#   APP_DOMAIN=edulearn.tn www.edulearn.tn
+# =============================================================================
+{$APP_DOMAIN} {
+	encode gzip
+
+	# API → backend. On utilise "handle" (et non "handle_path") pour CONSERVER
+	# le préfixe /api, que le backend attend (ex. /api/auth/login).
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# Tout le reste → fichiers statiques React servis par nginx.
+	handle {
+		reverse_proxy frontend:80
+	}
+}

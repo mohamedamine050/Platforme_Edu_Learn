@@ -2,13 +2,15 @@ package com.e_learning.project.controller;
 
 import com.e_learning.project.dto.CourseRequest;
 import com.e_learning.project.dto.CourseResponse;
+import com.e_learning.project.dto.PageResponse;
 import com.e_learning.project.service.CourseService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,15 +25,17 @@ public class CourseController {
 
     // CREATE
     @PostMapping("/classes/{classId}/courses")
-    public ResponseEntity<CourseResponse> create(@PathVariable Long classId,
+    public ResponseEntity<CourseResponse> create(@PathVariable UUID classId,
                                                  @Valid @RequestBody CourseRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(courseService.create(classId, request));
     }
 
-    // LIST by class
+    // LIST paginée par classe (query params : ?search=&page=&size=&sort=title,asc)
     @GetMapping("/classes/{classId}/courses")
-    public List<CourseResponse> getByClass(@PathVariable Long classId) {
-        return courseService.getByClass(classId);
+    public PageResponse<CourseResponse> getByClass(@PathVariable UUID classId,
+                                                   @RequestParam(required = false) String search,
+                                                   @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        return courseService.getByClass(classId, search, pageable);
     }
 
     // GET by id
@@ -49,7 +53,8 @@ public class CourseController {
 
     // DELETE
     @DeleteMapping("/courses/{id}")
-    public void delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         courseService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,78 +1,84 @@
 import SecondLayout from "../component/SecondLayout";
+import Pagination from "../component/Pagination";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
-import { getChapterById, getVideosByChapter } from "../service/classService";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { getChapterById, getVideosByChapter, getResourcesByChapter } from "../service/api";
+import { useListQuery } from "../hooks/useListQuery";
+import { BookIcon, PlayIcon, ArrowLeftIcon, PdfIcon, DownloadIcon, LockIcon } from "../component/Icons";
+import { useAuth } from "../context/AuthContext";
+
+const PAGE_SIZE = 8;
 
 const Video = () => {
   const navigate = useNavigate();
-  const { chapterId } = useParams();
+  const { user } = useAuth();
+  const { classId, courseId, chapterId } = useParams();
+  const { get, page, setParams } = useListQuery();
+  const selectedVideoId = get("v");
+
+  // Contenu verrouillé tant qu'un admin n'a pas accordé l'accès à l'étudiant.
+  const locked = user?.role === "STUDENT" && !user?.accessGranted;
 
   const [chapter, setChapter] = useState(null);
   const [videos, setVideos] = useState([]);
-  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [resources, setResources] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // =========================
-  // Convert YouTube URL -> embed
-  // =========================
+  // Convertit une URL YouTube/Drive en URL embarquable.
   const convertToEmbedUrl = (url) => {
     if (!url) return "";
-
-    const match = url.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/
-    );
-
-    const videoId = match ? match[1] : null;
-
-    return videoId
-      ? `https://www.youtube.com/embed/${videoId}?autoplay=1`
-      : url;
+    const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    if (yt) return `https://www.youtube.com/embed/${yt[1]}?autoplay=1`;
+    const drive = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
+    return url;
   };
 
-  // =========================
-  // FETCHING (NE PAS TOUCHER)
-  // =========================
+  // Miniature de la vidéo.
+  const getThumbnail = (url) => {
+    if (!url) return "";
+    const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+    if (yt) return `https://img.youtube.com/vi/${yt[1]}/mqdefault.jpg`;
+    const drive = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (drive) return `https://drive.google.com/thumbnail?id=${drive[1]}&sz=w320`;
+    return "";
+  };
+
   useEffect(() => {
-    const loadVideoPage = async () => {
+    if (!chapterId) return;
+    let active = true;
+    (async () => {
       try {
-        setLoading(true);
-
-        if (!chapterId) {
-          throw new Error("Chapitre introuvable.");
-        }
-
-        const [chapterData, videosData] = await Promise.all([
+        const [chapterData, videosRes, resourcesRes] = await Promise.all([
           getChapterById(chapterId),
-          getVideosByChapter(chapterId),
+          getVideosByChapter(chapterId, { page: page - 1, size: PAGE_SIZE }),
+          getResourcesByChapter(chapterId, { size: 1000 }),
         ]);
-
-        const sortedVideos = (videosData || [])
-          .slice()
-          .sort((a, b) => (a.videoOrder || 0) - (b.videoOrder || 0));
-
-        setChapter(chapterData);
-        setVideos(sortedVideos);
-        setSelectedVideoIndex(0);
+        if (active) {
+          setChapter(chapterData);
+          setVideos(videosRes.content ?? []);
+          setResources(resourcesRes.content ?? []);
+          setTotalPages(videosRes.totalPages);
+          setError("");
+        }
       } catch (err) {
-        setError(err.message || "Impossible de charger les vidéos.");
-        if (err.status === 401) {
-          navigate("/signin");
+        if (active) {
+          setError(err.message || "Impossible de charger les vidéos.");
+          if (err.status === 401) navigate("/signin");
         }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    };
+    })();
+    return () => { active = false; };
+  }, [chapterId, page, navigate]);
 
-    loadVideoPage();
-  }, [chapterId, navigate]);
+  // Vidéo sélectionnée dérivée de l'URL (?v=). Défaut : la 1re de la page.
+  const selectedIndex = Math.max(0, videos.findIndex((v) => v.id === selectedVideoId));
+  const selectedVideo = videos[selectedIndex] || null;
 
-  const selectedVideo = videos[selectedVideoIndex] || null;
-
-  // =========================
-  // LOADING
-  // =========================
   if (loading) {
     return (
       <SecondLayout>
@@ -83,86 +89,106 @@ const Video = () => {
     );
   }
 
-  // =========================
-  // ERROR
-  // =========================
   if (error) {
     return (
       <SecondLayout>
         <div className="videoPageContainer">
           <p className="profileError">{error}</p>
           <button className="backButton" onClick={() => navigate("/matiere")}>
-            ← Retour aux matières
+            <ArrowLeftIcon className="backIcon" /> Retour aux matières
           </button>
         </div>
       </SecondLayout>
     );
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <SecondLayout>
       <div className="videoPageContainer">
-        <button className="backButton" onClick={() => navigate(-1)}>
-          ← Retour
+        <nav className="breadcrumb">
+          <Link className="breadcrumbLink" to={`/classes/${classId}/courses`}>Matières</Link>
+          <span className="breadcrumbSep">›</span>
+          <Link className="breadcrumbLink" to={`/classes/${classId}/courses/${courseId}/chapters`}>
+            {chapter?.courseTitle || "Cours"}
+          </Link>
+          <span className="breadcrumbSep">›</span>
+          <span className="breadcrumbCurrent">{chapter?.title || "Chapitre"}</span>
+        </nav>
+
+        <button className="backButton" onClick={() => navigate(`/classes/${classId}/courses/${courseId}/chapters`)}>
+          <ArrowLeftIcon className="backIcon" /> Retour aux chapitres
         </button>
 
         <div className="videoGrid">
           {/* ================= LEFT ================= */}
           <div className="videoSection">
             <div className="videoPlayer">
-              {selectedVideo?.videoUrl ? (
+              {locked ? (
+                <div className="videoLock">
+                  <span className="videoLockIcon"><LockIcon /></span>
+                  <p className="videoLockTitle">
+                    Prêt à commencer à apprendre ? Débloque ce cours dès aujourd'hui.
+                  </p>
+                  <Link className="videoLockLink" to="/assistance">Déverrouiller l'accès complet</Link>
+                </div>
+              ) : selectedVideo?.videoUrl ? (
                 <iframe
                   width="100%"
                   height="400"
+                  style={{ border: 0 }}
                   src={convertToEmbedUrl(selectedVideo.videoUrl)}
                   title={selectedVideo.title}
-                  frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               ) : (
                 <>
                   <div className="playButton">
-                    <span>▶</span>
+                    <PlayIcon />
                   </div>
                   <p className="videoPlaceholder">
-                    {selectedVideo
-                      ? selectedVideo.title
-                      : chapter?.title || "Lecteur vidéo"}
+                    {selectedVideo ? selectedVideo.title : chapter?.title || "Lecteur vidéo"}
                   </p>
                   <p className="videoSubtext">
-                    {selectedVideo?.description ||
-                      chapter?.description ||
-                      "Sélectionnez une vidéo"}
+                    {selectedVideo?.description || chapter?.description || "Sélectionnez une vidéo"}
                   </p>
                 </>
               )}
             </div>
 
             <div className="courseInfoBox">
-              <h1 className="courseTitle">
-                {chapter?.title || "Chapitre"}
-              </h1>
+              <h1 className="courseTitle">{chapter?.title || "Chapitre"}</h1>
 
               <div className="courseStats">
-                <span>📘 {videos.length} vidéos</span>
+                <span className="statChip"><BookIcon className="statIcon" /> {videos.length} vidéos</span>
                 <span>•</span>
-                <span>
-                  ▶ {selectedVideoIndex + 1} / {videos.length || 1}
+                <span className="statChip">
+                  <PlayIcon className="statIcon" /> {selectedIndex + 1} / {videos.length || 1}
                 </span>
                 <span>•</span>
-                <span>
-                  Chapitre {chapter?.chapterOrder || "N/A"}
-                </span>
+                <span>Chapitre {chapter?.chapterOrder || "N/A"}</span>
               </div>
 
               <p className="courseDescription">
-                {chapter?.description ||
-                  "Sélectionnez une vidéo dans la liste."}
+                {chapter?.description || "Sélectionnez une vidéo dans la liste."}
               </p>
+
+              {!locked && resources.length > 0 && (
+                <div className="resourcesBox">
+                  <h3 className="resourcesTitle">Documents du chapitre</h3>
+                  <ul className="resourcesList">
+                    {resources.map((res) => (
+                      <li key={res.id}>
+                        <a className="resourceLink" href={res.fileUrl} target="_blank" rel="noreferrer">
+                          <PdfIcon className="resourceIcon" />
+                          <span className="resourceName">{res.name}</span>
+                          <DownloadIcon className="resourceDownload" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
@@ -178,35 +204,46 @@ const Video = () => {
                   <p>Aucune vidéo disponible</p>
                 </div>
               ) : (
-                videos.map((item, index) => (
+                videos.map((item) => (
                   <div
                     key={item.id}
-                    className={`contentItem ${
-                      index === selectedVideoIndex ? "current" : ""
-                    }`}
-                    onClick={() => setSelectedVideoIndex(index)}
-                    style={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        index === selectedVideoIndex
-                          ? "#ede9fe"
-                          : "transparent",
-                    }}
+                    className={`contentItem ${item.id === selectedVideo?.id ? "current" : ""} ${locked ? "isLocked" : ""}`}
+                    {...(locked
+                      ? {}
+                      : {
+                          role: "button",
+                          tabIndex: 0,
+                          onClick: () => setParams({ v: item.id }),
+                          onKeyDown: (event) => event.key === "Enter" && setParams({ v: item.id }),
+                        })}
                   >
-                    <div className="itemIcon">
-                      {index === selectedVideoIndex ? "▶" : "•"}
+                    <div className="itemThumb">
+                      {!locked && getThumbnail(item.videoUrl) && (
+                        <img
+                          className="itemThumbImg"
+                          src={getThumbnail(item.videoUrl)}
+                          alt=""
+                          loading="lazy"
+                          onError={(event) => { event.currentTarget.style.display = "none"; }}
+                        />
+                      )}
+                      <span className="itemThumbOverlay">
+                        {locked ? <LockIcon className="itemPlayIcon" /> : <PlayIcon className="itemPlayIcon" />}
+                      </span>
                     </div>
 
                     <div className="itemContent">
                       <p className="itemTitle">{item.title}</p>
                       <span className="itemDuration">
-                        {item.description || item.videoUrl}
+                        {locked ? "Verrouillé" : (item.description || item.videoUrl)}
                       </span>
                     </div>
                   </div>
                 ))
               )}
             </div>
+
+            <Pagination page={page - 1} totalPages={totalPages} onChange={(p) => setParams({ page: p + 1, v: null })} />
           </div>
         </div>
       </div>

@@ -2,15 +2,17 @@ package com.e_learning.project.service;
 
 import com.e_learning.project.dto.VideoRequest;
 import com.e_learning.project.dto.VideoResponse;
+import com.e_learning.project.dto.PageResponse;
 import com.e_learning.project.model.ChapterEntity;
 import com.e_learning.project.model.VideoEntity;
 import com.e_learning.project.exception.ResourceNotFoundException;
 import com.e_learning.project.repository.ChapterRepository;
 import com.e_learning.project.repository.VideoRepository;
+import com.e_learning.project.util.Filters;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,11 +21,14 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final ChapterRepository chapterRepository;
+    private final AccessControlService accessControl;
 
     public VideoService(VideoRepository videoRepository,
-                        ChapterRepository chapterRepository) {
+                        ChapterRepository chapterRepository,
+                        AccessControlService accessControl) {
         this.videoRepository = videoRepository;
         this.chapterRepository = chapterRepository;
+        this.accessControl = accessControl;
     }
 
     // CREATE
@@ -45,20 +50,23 @@ public class VideoService {
 
     // LIST
     @Transactional(readOnly = true)
-    public List<VideoResponse> getByChapter(UUID chapterId) {
-        return videoRepository.findByChapterId(chapterId)
-                .stream()
-                .map(VideoResponse::new)
-                .toList();
+    public PageResponse<VideoResponse> getByChapter(UUID chapterId, String search, Pageable pageable) {
+        ChapterEntity chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Chapter introuvable : " + chapterId));
+        accessControl.checkChapterAccess(chapter);
+        return PageResponse.from(
+                videoRepository.searchByChapter(chapterId, Filters.likePattern(search), pageable)
+                        .map(VideoResponse::new));
     }
 
     // GET
     @Transactional(readOnly = true)
     public VideoResponse getById(UUID id) {
-        return videoRepository.findById(id)
-                .map(VideoResponse::new)
+        VideoEntity video = videoRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Video introuvable : " + id));
+        accessControl.checkChapterAccess(video.getChapter());
+        return new VideoResponse(video);
     }
 
     // UPDATE

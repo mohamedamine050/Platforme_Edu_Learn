@@ -1,0 +1,20 @@
+# Dépendances installées dans l'image (jamais celles de l'hôte : binaires Windows).
+node_modules
+
+# Artefacts de build et caches
+dist
+dist-ssr
+*.local
+
+# Fichiers d'environnement et secrets (injectés via docker compose env_file)
+.env
+.env.*
+
+# Git / éditeurs / OS
+.git
+.gitignore
+.vscode
+.idea
+*.log
+.DS_Store
+Thumbs.db

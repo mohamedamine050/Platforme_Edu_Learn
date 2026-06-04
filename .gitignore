@@ -6,10 +6,14 @@ frontend/dist/
 # Backend build output
 backend/target/
 
-# Environment files
-backend/.env
-backend/.env.*
-!backend/.env.example
+# Environment files — secrets ignored, only *.example templates are tracked.
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Tooling
+.claude/
 
 # Logs and OS files
 *.log

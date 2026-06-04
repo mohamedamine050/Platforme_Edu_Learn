@@ -1,0 +1,32 @@
+# ============================================================================
+# Profil PRODUCTION
+# Schéma vérifié et non modifié, SQL masqué, Swagger désactivé, cookies sécurisés.
+# Toutes les valeurs sensibles DOIVENT provenir de l'environnement.
+# ============================================================================
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update             # Hibernate gère le schéma (création/mise à jour automatique)
+    show-sql: false                # ne pas exposer les requêtes SQL
+
+jwt:
+  cookie:
+    secure: ${JWT_COOKIE_SECURE:true}      # cookies envoyés uniquement en HTTPS
+    sameSite: ${JWT_COOKIE_SAME_SITE:Strict}
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web: WARN
+    com.e_learning: INFO
+
+springdoc:
+  api-docs:
+    enabled: false                 # documentation API désactivée en production
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoint:
+    health:
+      show-details: never          # ne pas divulguer les détails de santé

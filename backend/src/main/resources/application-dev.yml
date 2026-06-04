@@ -1,0 +1,47 @@
+# ============================================================================
+# Profil DÉVELOPPEMENT
+# Démarre sans configuration manuelle : schéma auto, SQL visible, Swagger ouvert.
+# ============================================================================
+spring:
+  # Défauts localhost pour lancer le backend en local sans .env (ex : mvnw spring-boot:run).
+  # En Docker, les variables d'environnement (db:5432, etc.) prennent le dessus.
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/edulearn}
+    username: ${SPRING_DATASOURCE_USERNAME:edulearn_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:changeme}
+  jpa:
+    hibernate:
+      ddl-auto: update             # dev : Hibernate crée/adapte le schéma automatiquement
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Défauts mail pour démarrer en local sans .env. Pointez MAIL_* vers un bac à sable
+  # (ex : Mailtrap) : les emails sont capturés et ne partent pas réellement.
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:85a873760c88d2}
+    password: ${MAIL_PASSWORD:4cd6a59ff03c5b}
+
+jwt:
+  # Secret de repli pour le confort de développement (jamais en production).
+  secret: ${JWT_SECRET:dev-only-secret-change-me-please-change-me-please}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    com.e_learning: DEBUG          # logs détaillés du package applicatif
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+management:
+  endpoint:
+    health:
+      show-details: always

@@ -1,13 +1,24 @@
+# Le fichier ./.env (à côté de ce compose) est chargé automatiquement par
+# docker compose pour l'interpolation ${VAR}. Chaque service ne reçoit que
+# les variables dont il a besoin (pas de fuite de secret entre conteneurs).
 services:
   db:
     image: postgres:15
     container_name: postgres_db
-    env_file:
-      - ./backend/.env
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - project_elearningtn_network
 
@@ -16,22 +27,41 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: elearning_backend
-    env_file:
-      - ./backend/.env
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SERVER_PORT: ${SERVER_PORT}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
+      APP_MAIL_FROM: ${APP_MAIL_FROM}
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - project_elearningtn_network
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      target: dev
     container_name: elearning_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     ports:
-      - "3000:80"
+      - "5173:5173"
+    depends_on:
+      - backend
     networks:
       - project_elearningtn_network
 

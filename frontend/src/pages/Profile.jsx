@@ -1,58 +1,23 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SecondLayout from "../component/SecondLayout";
-import { me } from "../service/auth";
+import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Profil rendu sous <PrivateRoute> : l'utilisateur est déjà chargé dans le contexte,
+  // pas besoin de rappeler me() ici.
+  const { user, status } = useAuth();
 
   const fullName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Mon Profil" : "Mon Profil";
   const initials = user
     ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.trim() || "MP"
     : "MP";
-  const profileSubtitle = user ? "Gérez vos informations et votre parcours d’apprentissage" : "Chargement de votre espace personnel";
+  const roleLabel = user?.role === "ADMIN" ? "Administrateur" : "Étudiant";
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        setLoading(true);
-        const userData = await me();
-        setUser(userData);
-      } catch (err) {
-        setError(err.message || "Failed to load profile.");
-        // Redirect to signin if unauthorized
-        if (err.status === 401) {
-          navigate("/signin");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUserProfile();
-  }, [navigate]);
-
-  if (loading) {
+  if (status === "loading") {
     return (
       <SecondLayout>
         <section className="profilePage">
           <div className="profileContainer profileStateCard">
             <p>Chargement du profil...</p>
-          </div>
-        </section>
-      </SecondLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <SecondLayout>
-        <section className="profilePage">
-          <div className="profileContainer profileStateCard">
-            <p className="profileError">{error}</p>
           </div>
         </section>
       </SecondLayout>
@@ -74,86 +39,74 @@ const Profile = () => {
   return (
     <SecondLayout>
       <section className="profilePage">
-        <div className="profileContainer">
-          <div className="profileHero">
-            <div>
-              <span className="profileEyebrow">Espace personnel</span>
-              <h1>{fullName}</h1>
-              <p className="profileSubtitle">{profileSubtitle}</p>
-            </div>
+        <div className="profileWrap">
+          <header className="profilePageHead">
+            <h1>Mon profil</h1>
+            <p>Vos informations personnelles</p>
+          </header>
 
-            <div className="profileAvatar" aria-hidden="true">
-              {initials}
+          <div className="profileHeader">
+            <div className="profileBanner" />
+            <div className="profileHeaderRow">
+              <div className="profileAvatar" aria-hidden="true">{initials}</div>
+              <div className="profileHeaderInfo">
+                <h2>{fullName}</h2>
+                <p>{user.email}</p>
+              </div>
+              <div className="profileHeaderMeta">
+                <span className="profileRoleBadge">{roleLabel}</span>
+                <span className={`profileStatus ${user.isActive ? "isActive" : "isInactive"}`}>
+                  <span className="profileStatusDot" />
+                  {user.isActive ? "Actif" : "Inactif"}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="profileHighlights">
-            <div className="profileHighlightCard">
-              <span>Statut</span>
-              <strong>{user.isActive ? "Actif" : "Inactif"}</strong>
-            </div>
-            <div className="profileHighlightCard">
-              <span>Niveau</span>
-              <strong>{user.level || "N/A"}</strong>
-            </div>
-            <div className="profileHighlightCard">
-              <span>Classe</span>
-              <strong>{user.classTitle || "Non assignée"}</strong>
-            </div>
-          </div>
-
-          <div className="profileContent">
-            <div className="profileCard">
-              <div className="profileCardHeader">
-                <h2>Informations personnelles</h2>
-                <p>Détails de votre compte et de votre identité.</p>
-              </div>
-
-              <div className="profileFieldGrid">
+          <div className="profileGrid">
+            <section className="profilePanel">
+              <h3 className="profilePanelTitle">Coordonnées</h3>
+              <div className="profileFields">
                 <div className="profileField">
-                  <label>Prénom</label>
-                  <p>{user.firstName || "N/A"}</p>
+                  <span className="profileFieldLabel">Email</span>
+                  <span className="profileFieldValue">{user.email || "—"}</span>
                 </div>
                 <div className="profileField">
-                  <label>Nom</label>
-                  <p>{user.lastName || "N/A"}</p>
-                </div>
-                <div className="profileField profileFieldWide">
-                  <label>Email</label>
-                  <p>{user.email || "N/A"}</p>
-                </div>
-                <div className="profileField">
-                  <label>Téléphone</label>
-                  <p>{user.phoneNumber || "N/A"}</p>
-                </div>
-                <div className="profileField">
-                  <label>Date de naissance</label>
-                  <p>{user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : "N/A"}</p>
-                </div>
-                <div className="profileField">
-                  <label>Genre</label>
-                  <p>{user.gender || "N/A"}</p>
+                  <span className="profileFieldLabel">Téléphone</span>
+                  <span className="profileFieldValue">{user.phoneNumber || "—"}</span>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="profileCard">
-              <div className="profileCardHeader">
-                <h2>Information de classe</h2>
-                <p>Votre progression scolaire actuelle.</p>
-              </div>
-
-              <div className="profileFieldGrid compact">
+            <section className="profilePanel">
+              <h3 className="profilePanelTitle">Scolarité</h3>
+              <div className="profileFields">
                 <div className="profileField">
-                  <label>Niveau</label>
-                  <p>{user.level || "N/A"}</p>
+                  <span className="profileFieldLabel">Niveau</span>
+                  <span className="profileFieldValue">{user.level || "—"}</span>
                 </div>
                 <div className="profileField">
-                  <label>Classe</label>
-                  <p>{user.classTitle || "Non assignée"}</p>
+                  <span className="profileFieldLabel">Classe</span>
+                  <span className="profileFieldValue">{user.classTitle || "Non assignée"}</span>
                 </div>
               </div>
-            </div>
+            </section>
+
+            <section className="profilePanel">
+              <h3 className="profilePanelTitle">Identité</h3>
+              <div className="profileFields">
+                <div className="profileField">
+                  <span className="profileFieldLabel">Date de naissance</span>
+                  <span className="profileFieldValue">
+                    {user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : "—"}
+                  </span>
+                </div>
+                <div className="profileField">
+                  <span className="profileFieldLabel">Genre</span>
+                  <span className="profileFieldValue">{user.gender || "—"}</span>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </section>

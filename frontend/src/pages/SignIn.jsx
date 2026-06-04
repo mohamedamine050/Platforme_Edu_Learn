@@ -1,39 +1,61 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import MainLayout from "../component/MainLayout";
-import { login } from "../service/auth";
+import { login, logout } from "../service/api";
+import { useAuth } from "../context/AuthContext";
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [isAdminAccount, setIsAdminAccount] = useState(false);
+  // Message informatif transmis par une autre page (ex : après inscription).
+  const notice = location.state?.notice;
 
-  const canSubmit = useMemo(() => email.trim() && password.trim(), [email, password]);
+  const canSubmit = useMemo(() => email.trim() && password, [email, password]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setNeedsVerification(false);
+    setIsAdminAccount(false);
 
     const normalizedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
 
-    if (!normalizedEmail || !trimmedPassword) {
-      setError("Email and password are required.");
+    if (!normalizedEmail || !password) {
+      setError("L'email et le mot de passe sont obligatoires.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await login({ email: normalizedEmail, password: trimmedPassword });
+      const user = await login({ email: normalizedEmail, password });
+      // Interface réservée aux étudiants : un compte admin doit passer par l'espace admin.
+      // On annule la session ouverte par erreur (symétrique à AdminLogin).
+      if (user?.role === "ADMIN") {
+        await logout();
+        setError("Cette interface est réservée aux étudiants.");
+        setIsAdminAccount(true);
+        return;
+      }
+      setAuthenticated(user);
       navigate("/profile");
     } catch (err) {
       if (err.status === 404) {
         navigate("/signup", { state: { email: normalizedEmail } });
         return;
       }
-      setError(err.message || "Login failed.");
+      const message = err.message || "Échec de la connexion.";
+      setError(message);
+      // Email non vérifié : on propose de renvoyer le lien d'activation.
+      if (/vérifier votre adresse/i.test(message)) {
+        setNeedsVerification(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -44,21 +66,24 @@ const SignIn = () => {
       <section className="authPage">
         <div className="authShell">
           <div className="authIntro">
-            <p className="authKicker">Welcome back</p>
-            <h1>Continue your learning journey</h1>
+            <p className="authKicker">Content de vous revoir</p>
+            <h1>Poursuivez votre apprentissage</h1>
             <p className="authBody">
-              Sign in with your email and password. No account yet? We will guide you to sign up.
+              Connectez-vous avec votre email et votre mot de passe. Pas encore de compte ?
+              Nous vous guiderons vers l'inscription.
             </p>
             <div className="authHighlights">
-              <div className="authBadge">Video courses</div>
-              <div className="authBadge">Personalized path</div>
-              <div className="authBadge">24/7 access</div>
+              <div className="authBadge">Cours vidéo</div>
+              <div className="authBadge">Parcours personnalisé</div>
+              <div className="authBadge">Accès 24/7</div>
             </div>
           </div>
 
           <div className="authCard">
-            <h2>Sign In</h2>
-            <p className="authSubtitle">Use the same email you signed up with.</p>
+            <h2>Connexion</h2>
+            <p className="authSubtitle">Utilisez l'email avec lequel vous vous êtes inscrit.</p>
+
+            {notice && <p className="authNotice">{notice}</p>}
 
             <form className="authForm" onSubmit={handleSubmit}>
               <label className="authField">
@@ -66,7 +91,7 @@ const SignIn = () => {
                 <input
                   className="authInput"
                   type="email"
-                  placeholder="you@email.com"
+                  placeholder="vous@email.com"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   autoComplete="email"
@@ -75,11 +100,11 @@ const SignIn = () => {
               </label>
 
               <label className="authField">
-                <span>Password</span>
+                <span>Mot de passe</span>
                 <input
                   className="authInput"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Entrez votre mot de passe"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
@@ -88,14 +113,29 @@ const SignIn = () => {
               </label>
 
               {error && <p className="authError">{error}</p>}
+              {needsVerification && (
+                <p className="authFooter">
+                  <Link to="/resend-verification" state={{ email: email.trim().toLowerCase() }}>
+                    Renvoyer l'email de vérification
+                  </Link>
+                </p>
+              )}
+              {isAdminAccount && (
+                <p className="authFooter">
+                  <Link to="/admin/login">Aller à l'espace administrateur</Link>
+                </p>
+              )}
 
               <button className="authButton" type="submit" disabled={!canSubmit || isSubmitting}>
-                {isSubmitting ? "Signing in..." : "Sign In"}
+                {isSubmitting ? "Connexion..." : "Se connecter"}
               </button>
             </form>
 
             <p className="authFooter">
-              New here? <Link to="/signup">Create an account</Link>
+              <Link to="/forgot-password">Mot de passe oublié ?</Link>
+            </p>
+            <p className="authFooter">
+              Nouveau ici ? <Link to="/signup">Créer un compte</Link>
             </p>
           </div>
         </div>

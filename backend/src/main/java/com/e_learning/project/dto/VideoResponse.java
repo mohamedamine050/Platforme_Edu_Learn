@@ -24,4 +24,10 @@ public class VideoResponse {
         this.videoOrder = entity.getVideoOrder();
         this.createdAt = entity.getCreatedAt();
     }
+
+    // Masque l'URL de lecture pour un étudiant sans accès : le titre reste visible
+    // (aperçu du programme), mais le contenu ne peut pas être lu.
+    public void hideUrl() {
+        this.videoUrl = null;
+    }
 }

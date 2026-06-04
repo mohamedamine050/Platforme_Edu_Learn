@@ -35,7 +35,7 @@ public class VideoEntity {
     private LocalDateTime createdAt;
 
     // 🔥 relation obligatoire vers Chapter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", nullable = false)
     private ChapterEntity chapter;
 

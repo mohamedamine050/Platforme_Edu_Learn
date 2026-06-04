@@ -48,14 +48,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractTokenFromCookie(request);
         if (token != null && jwtService.isTokenValid(token)) {
             String subject = jwtService.extractSubject(token);
+            String tokenSid = jwtService.extractSessionId(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(subject);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            // Une seule session active : le token n'est valable que si son "sid"
+            // correspond au sessionId courant du compte. Une nouvelle connexion
+            // (autre appareil) régénère le sessionId → cet ancien token est rejeté.
+            boolean sessionValid = userDetails instanceof AppUserDetails appUser
+                    && appUser.getSessionId() != null
+                    && appUser.getSessionId().equals(tokenSid);
+
+            if (sessionValid) {
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
 
         filterChain.doFilter(request, response);
