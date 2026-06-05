@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { logout } from "../service/api";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +11,8 @@ import {
   UsersIcon,
   LogoutIcon,
   LogoMark,
+  MenuIcon,
+  CloseIcon,
 } from "./Icons";
 
 const NAV_LINKS = [
@@ -25,6 +28,9 @@ const NAV_LINKS = [
 const AdminLayout = () => {
   const navigate = useNavigate();
   const { clear } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
 
   const handleLogout = async () => {
     try {
@@ -37,7 +43,39 @@ const AdminLayout = () => {
 
   return (
     <div className="adminShell">
-      <aside className="adminSidebar">
+      {/* Barre supérieure (mobile uniquement) avec bouton menu */}
+      <header className="adminTopbar">
+        <button
+          className="adminMenuBtn"
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Ouvrir le menu"
+          aria-expanded={menuOpen}
+        >
+          <MenuIcon />
+        </button>
+        <div className="adminSidebarBrand">
+          <span className="adminBrandMark"><LogoMark /></span>
+          <span>EduLearn</span>
+        </div>
+      </header>
+
+      {/* Voile sombre derrière le tiroir (mobile) */}
+      <div
+        className={menuOpen ? "adminOverlay isOpen" : "adminOverlay"}
+        onClick={closeMenu}
+        aria-hidden="true"
+      />
+
+      <aside className={menuOpen ? "adminSidebar isOpen" : "adminSidebar"}>
+        <button
+          className="adminSidebarClose"
+          type="button"
+          onClick={closeMenu}
+          aria-label="Fermer le menu"
+        >
+          <CloseIcon />
+        </button>
         <div className="adminSidebarBrand">
           <span className="adminBrandMark"><LogoMark /></span>
           <span>EduLearn</span>
@@ -48,6 +86,7 @@ const AdminLayout = () => {
               key={link.path}
               to={link.path}
               end={link.end}
+              onClick={closeMenu}
               className={({ isActive }) => (isActive ? "adminNavLink active" : "adminNavLink")}
             >
               <link.Icon className="adminNavIcon" />

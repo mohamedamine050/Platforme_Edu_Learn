@@ -1790,64 +1790,180 @@ body {
   border-right: none;
 }
 
+/* Tiroir mobile (étudiant) : masqués sur desktop, activés ≤768px. */
+.studentTopbar,
+.studentMenuBtn,
+.sidebarClose,
+.sidebarOverlay {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .secondLayout {
     flex-direction: column;
   }
 
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    padding: 12px 0;
-    flex-direction: row;
-    background: #ffffff;
+  /* Barre supérieure fixe : bouton menu + marque. */
+  .studentTopbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff;
     border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 120;
+  }
+
+  .studentMenuBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    background: #f3f4f6;
+    color: #1f2937;
+    cursor: pointer;
+  }
+
+  .studentMenuBtn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .studentTopbarBrand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--brand);
+  }
+
+  .studentBrandMark {
+    display: inline-flex;
+    color: var(--brand);
+  }
+
+  .studentBrandMark svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* La barre latérale devient un tiroir hors-écran qui glisse depuis la gauche. */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: 250px;
+    max-width: 80vw;
+    padding: 20px 0;
+    flex-direction: column;
+    background: #fff;
+    border-bottom: none;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+    overflow-y: auto;
+  }
+
+  .sidebar.isOpen {
+    transform: translateX(0);
+  }
+
+  /* Bouton de fermeture (croix) en haut à droite du tiroir. */
+  .sidebarClose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius);
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+  }
+
+  .sidebarClose svg {
+    width: 20px;
+    height: 20px;
   }
 
   .sidebarNav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0;
+    flex: 1;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
     width: 100%;
-    padding: 0 8px;
+    padding: 32px 12px 0;
   }
 
+  /* Liens en ligne (icône à gauche, texte à droite) dans le tiroir. */
   .sidebarLink {
-    flex: 1;
-    min-width: 70px;
-    padding: 10px 6px;
-    gap: 4px;
-    margin: 4px 2px;
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
     border-radius: var(--radius);
+    font-size: 14px;
   }
 
   .sidebarLink::before {
     display: none;
   }
 
+  .sidebarLink .linkText {
+    font-size: 14px;
+    max-width: none;
+    text-align: left;
+  }
+
   .sidebarLink.active {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(var(--brand-rgb), 0.1);
+    color: var(--brand);
     border-right: none;
   }
 
   .sidebarLink.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 10%;
-    right: 10%;
-    height: 3px;
-    background: #fff;
-    border-radius: 2px 2px 0 0;
+    display: none;
+  }
+
+  /* « Déconnexion » poussé en bas du tiroir. */
+  .signOutBtn {
+    margin-top: auto;
   }
 
   .linkIcon {
     font-size: 22px;
   }
 
-  .linkText {
-    font-size: 9px;
+  /* Voile sombre derrière le tiroir. */
+  .sidebarOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 150;
+  }
+
+  .sidebarOverlay.isOpen {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .mainContent {
@@ -2094,6 +2210,12 @@ body {
   margin: 0;
 }
 
+@media (max-width: 1024px) {
+  .assistanceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .assistance {
     padding: 20px 16px;
@@ -2103,7 +2225,7 @@ body {
     font-size: 22px;
   }
 
-  .assistanceContent {
+  .assistanceGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -3108,6 +3230,14 @@ body {
   overflow-x: auto;
 }
 
+/* Tiroir mobile : masqués sur desktop, activés ≤768px (voir media query plus bas). */
+.adminTopbar,
+.adminMenuBtn,
+.adminSidebarClose,
+.adminOverlay {
+  display: none;
+}
+
 /* Admin page */
 .adminPage {
   max-width: 1100px;
@@ -3655,23 +3785,92 @@ body {
     flex-direction: column;
   }
 
-  .adminSidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
+  /* Barre supérieure fixe : bouton menu + marque. */
+  .adminTopbar {
+    display: flex;
     align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid var(--admin-border);
+    position: sticky;
+    top: 0;
+    z-index: 120;
   }
 
-  .adminNav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    flex: 1;
+  .adminMenuBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    background: #f3f4f6;
+    color: var(--admin-text);
+    cursor: pointer;
   }
 
-  .adminLogoutBtn {
-    margin-top: 0;
+  .adminMenuBtn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* La barre latérale devient un tiroir hors-écran qui glisse depuis la gauche. */
+  .adminSidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: 270px;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+    overflow-y: auto;
+  }
+
+  .adminSidebar.isOpen {
+    transform: translateX(0);
+  }
+
+  /* Bouton de fermeture (croix) en haut à droite du tiroir. */
+  .adminSidebarClose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius);
+    background: #f3f4f6;
+    color: var(--admin-muted);
+    cursor: pointer;
+  }
+
+  .adminSidebarClose svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Voile sombre derrière le tiroir. */
+  .adminOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 150;
+  }
+
+  .adminOverlay.isOpen {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .adminMain {
@@ -3765,4 +3964,227 @@ body {
 .backIcon {
   width: 16px;
   height: 16px;
+}
+
+/* =========================================================
+   RESPONSIVE — Améliorations transversales (tous appareils)
+   Complète les media queries par section ci-dessus.
+   Paliers : tablettes (≤1024px), mobiles (≤768px),
+   petits téléphones (≤480px) et très petits écrans (≤360px).
+   ========================================================= */
+
+/* Médias fluides : aucune image / vidéo / iframe ne dépasse son conteneur. */
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+.videoPlayer iframe {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- TABLETTES (≤ 1024px) --- */
+@media (max-width: 1024px) {
+  .navInner {
+    padding: 0 20px;
+  }
+
+  .hero {
+    padding: 96px 20px 104px;
+  }
+
+  .subscriptions {
+    padding: 60px 20px;
+  }
+
+  .about,
+  .offers {
+    padding: 48px 20px;
+  }
+
+  .matiere,
+  .matiereDetailContainer,
+  .videoPageContainer,
+  .profilePage {
+    padding: 28px 24px 40px;
+  }
+
+  .adminMain {
+    padding: 24px;
+  }
+}
+
+/* --- MOBILES (≤ 768px) --- */
+@media (max-width: 768px) {
+  .stats {
+    gap: 16px;
+    padding: 36px 16px;
+  }
+
+  .statValue {
+    font-size: 30px;
+  }
+
+  .subscriptionHeader p,
+  .offersHeader p,
+  .subjectsSection p {
+    font-size: 15px;
+  }
+
+  /* Tableaux admin : défilement horizontal propre plutôt qu'une mise en page cassée. */
+  .adminTableWrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .adminTable {
+    min-width: 640px;
+  }
+
+  .adminCards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .adminFilters {
+    flex-direction: column;
+  }
+
+  .adminFilters .adminField {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .adminPagination,
+  .pagination {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .profileHeaderRow {
+    gap: 12px;
+  }
+
+  .courseStats {
+    font-size: 12px;
+  }
+}
+
+/* --- PETITS TÉLÉPHONES (≤ 480px) --- */
+@media (max-width: 480px) {
+  .navInner {
+    padding: 0 14px;
+    height: 58px;
+  }
+
+  .logoText {
+    font-size: 18px;
+  }
+
+  .hero {
+    padding: 72px 16px 80px;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .heroBtn,
+  .heroBtnGhost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats {
+    flex-direction: column;
+  }
+
+  .statCard {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .subscriptions {
+    padding: 48px 16px;
+  }
+
+  .subscriptionHeader h2,
+  .offersHeader h1,
+  .subjectsSection h2,
+  .aboutHeader h1 {
+    font-size: 24px;
+  }
+
+  .courseCategory {
+    padding: 28px 20px;
+  }
+
+  .sectionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .authCard {
+    padding: 22px 18px;
+  }
+
+  .authIntro h1 {
+    font-size: 26px;
+  }
+
+  .authActions {
+    flex-direction: column;
+  }
+
+  /* Empile les boutons d'action des tableaux pour éviter le débordement. */
+  .adminTableActions {
+    flex-wrap: wrap;
+  }
+
+  .adminSectionRow {
+    grid-template-columns: 1fr;
+  }
+
+  .adminModal {
+    padding: 20px 18px;
+  }
+
+  .adminPageHeader h1 {
+    font-size: 22px;
+  }
+
+  .profileHeaderRow {
+    padding: 0 18px 18px;
+  }
+
+  .profileAvatar {
+    width: 76px;
+    height: 76px;
+    margin-top: -38px;
+    font-size: 26px;
+  }
+
+  .videoPlayer {
+    padding: 20px;
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+  }
+}
+
+/* --- TRÈS PETITS ÉCRANS (≤ 360px) --- */
+@media (max-width: 360px) {
+  .sidebarLink {
+    min-width: 60px;
+  }
+
+  .linkText {
+    font-size: 8px;
+  }
+
+  .adminNavLink {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
 }

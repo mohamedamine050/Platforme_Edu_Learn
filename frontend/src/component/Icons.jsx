@@ -38,6 +38,7 @@ import {
   FileText,
   Download,
   Lock,
+  X,
 } from "lucide-react";
 
 // Admin
@@ -56,6 +57,7 @@ export const UserIcon = User;
 export const OffersIcon = Gem;
 export const ChatIcon = MessageCircle;
 export const MenuIcon = Menu;
+export const CloseIcon = X;
 export const CollegeIcon = Backpack;
 export const LyceeIcon = Library;
 export const MissionIcon = Target;
