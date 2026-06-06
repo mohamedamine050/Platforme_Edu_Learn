@@ -16,9 +16,6 @@ const Video = () => {
   const { get, page, setParams } = useListQuery();
   const selectedVideoId = get("v");
 
-  // Contenu verrouillé tant qu'un admin n'a pas accordé l'accès à l'étudiant.
-  const locked = user?.role === "STUDENT" && !user?.accessGranted;
-
   const [chapter, setChapter] = useState(null);
   const [videos, setVideos] = useState([]);
   const [resources, setResources] = useState([]);
@@ -78,6 +75,10 @@ const Video = () => {
   // Vidéo sélectionnée dérivée de l'URL (?v=). Défaut : la 1re de la page.
   const selectedIndex = Math.max(0, videos.findIndex((v) => v.id === selectedVideoId));
   const selectedVideo = videos[selectedIndex] || null;
+
+  // Contenu verrouillé tant qu'aucun abonnement actif ne couvre la classe du chapitre.
+  // L'info vient du backend (chapter.accessGranted) : admin ou abonnement actif = déverrouillé.
+  const locked = user?.role === "STUDENT" && chapter != null && !chapter.accessGranted;
 
   if (loading) {
     return (

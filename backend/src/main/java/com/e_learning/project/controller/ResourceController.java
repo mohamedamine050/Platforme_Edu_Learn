@@ -41,7 +41,7 @@ public class ResourceController {
                                                        @RequestParam(required = false) String search,
                                                        @PageableDefault(size = 10, sort = "name") Pageable pageable) {
         PageResponse<ResourceResponse> result = resourceService.getByChapter(chapterId, search, pageable);
-        if (!accessChecker.canViewContent()) {
+        if (!accessChecker.canViewChapter(chapterId)) {
             result.content().forEach(ResourceResponse::hideUrl);
         }
         return result;
@@ -49,7 +49,7 @@ public class ResourceController {
 
     // GET d'un document complet (URL incluse) : réservé aux accès accordés.
     @GetMapping("/resources/{id}")
-    @PreAuthorize("@accessChecker.canViewContent()")
+    @PreAuthorize("@accessChecker.canViewResource(#id)")
     public ResourceResponse getById(@PathVariable UUID id) {
         return resourceService.getById(id);
     }

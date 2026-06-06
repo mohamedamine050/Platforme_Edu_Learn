@@ -3,6 +3,7 @@ package com.e_learning.project.dto;
 import com.e_learning.project.model.ChapterEntity;
 import com.e_learning.project.model.CourseEntity;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +23,11 @@ public class ChapterResponse {
     private String classTitle;
     private String classLevel;
     private LocalDateTime createdAt;
+
+    // Accès au contenu de la classe pour l'utilisateur courant (abonnement actif ou admin).
+    // Renseigné sur le détail d'un chapitre ; sert au verrou côté front. Défaut : false.
+    @Setter
+    private boolean accessGranted;
 
     public ChapterResponse(ChapterEntity entity) {
         this.id = entity.getId();

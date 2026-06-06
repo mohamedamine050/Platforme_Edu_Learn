@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { getUsers, createUser, updateUser, deleteUser, getClasses, setUserAccess } from "../../service/api";
+import { getUsers, createUser, updateUser, deleteUser, getClasses } from "../../service/api";
 import { useListQuery } from "../../hooks/useListQuery";
 import AdminTable from "./AdminTable";
 import AdminFormModal from "./AdminFormModal";
 import AdminPagination from "./AdminPagination";
+import SubscriptionModal from "./SubscriptionModal";
 
 const PAGE_SIZE = 10;
 
@@ -66,6 +67,7 @@ const AdminUsers = () => {
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [subStudent, setSubStudent] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -195,33 +197,23 @@ const AdminUsers = () => {
     }
   };
 
-  // Accorde / révoque l'accès au contenu (vidéos, documents) pour un étudiant.
-  const handleToggleAccess = async (row) => {
-    try {
-      await setUserAccess(row.id, !row.accessGranted);
-      reload();
-    } catch (err) {
-      setError(err.message || "Modification de l'accès impossible.");
-    }
-  };
-
-  // Colonnes = champs de base + colonne « Accès » (bouton bascule, capturant le handler).
+  // Colonnes = champs de base + colonne « Abonnements » (ouvre la gestion des abonnements).
   const columns = [
     ...COLUMNS,
     {
-      key: "accessGranted",
-      label: "Accès",
+      key: "subscriptions",
+      label: "Abonnements",
       render: (row) =>
         row.role === "ADMIN" ? (
-          <span className="accessTag isGranted">Accordé</span>
+          <span className="accessTag isGranted">Accès total</span>
         ) : (
           <button
             type="button"
-            className={`accessToggle ${row.accessGranted ? "isGranted" : "isBlocked"}`}
-            onClick={() => handleToggleAccess(row)}
-            title={row.accessGranted ? "Cliquer pour bloquer l'accès" : "Cliquer pour accorder l'accès"}
+            className="adminBtn adminBtnGhost"
+            onClick={() => setSubStudent(row)}
+            title="Gérer les abonnements de cet étudiant"
           >
-            {row.accessGranted ? "Accordé" : "Bloqué"}
+            Gérer
           </button>
         ),
     },
@@ -278,6 +270,14 @@ const AdminUsers = () => {
           onClose={() => setModalOpen(false)}
           submitting={submitting}
           error={formError}
+        />
+      )}
+
+      {subStudent && (
+        <SubscriptionModal
+          student={subStudent}
+          classes={classes}
+          onClose={() => setSubStudent(null)}
         />
       )}
     </div>

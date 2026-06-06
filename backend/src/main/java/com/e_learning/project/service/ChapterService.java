@@ -79,7 +79,11 @@ public class ChapterService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Chapter introuvable : " + id));
         accessControl.checkChapterAccess(chapter);
-        return new ChapterResponse(chapter);
+        ChapterResponse response = new ChapterResponse(chapter);
+        // Verrou côté front : l'étudiant voit le programme mais ne lit le contenu
+        // que si un abonnement actif couvre la classe (admin = toujours ouvert).
+        response.setAccessGranted(accessControl.canPlayClass(chapter.getCourse().getClassEntity().getId()));
+        return response;
     }
 
     // UPDATE

@@ -42,7 +42,7 @@ public class VideoController {
                                                     @RequestParam(required = false) String search,
                                                     @PageableDefault(size = 10, sort = "videoOrder") Pageable pageable) {
         PageResponse<VideoResponse> result = videoService.getByChapter(chapterId, search, pageable);
-        if (!accessChecker.canViewContent()) {
+        if (!accessChecker.canViewChapter(chapterId)) {
             result.content().forEach(VideoResponse::hideUrl);
         }
         return result;
@@ -50,7 +50,7 @@ public class VideoController {
 
     // GET d'une vidéo complète (URL incluse) : réservé aux accès accordés.
     @GetMapping("/videos/{id}")
-    @PreAuthorize("@accessChecker.canViewContent()")
+    @PreAuthorize("@accessChecker.canViewVideo(#id)")
     public VideoResponse getById(@PathVariable UUID id) {
         return videoService.getById(id);
     }

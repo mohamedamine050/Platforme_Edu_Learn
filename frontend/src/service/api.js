@@ -95,5 +95,10 @@ export const getUsers = (params) => get(`/api/users${buildQuery(params)}`);
 export const getUserById = (userId) => get(`/api/users/${userId}`);
 export const createUser = (body) => post("/api/users", body);
 export const updateUser = (userId, body) => put(`/api/users/${userId}`, body);
-export const setUserAccess = (userId, granted) => put(`/api/users/${userId}/access`, { granted });
 export const deleteUser = (userId) => del(`/api/users/${userId}`);
+
+// Subscriptions (abonnements datés par classe)
+export const getStudentSubscriptions = (studentId) => get(`/api/students/${studentId}/subscriptions`);
+export const createSubscription = (studentId, body) => post(`/api/students/${studentId}/subscriptions`, body);
+export const deleteSubscription = (subscriptionId) => del(`/api/subscriptions/${subscriptionId}`);
+export const getMySubscriptions = () => get("/api/me/subscriptions");
